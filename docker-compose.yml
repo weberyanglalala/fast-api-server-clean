@@ -1,6 +1,6 @@
 services:
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
@@ -20,9 +20,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./pg-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-
-volumes:
-  postgres_data:
+      - "5438:5432"

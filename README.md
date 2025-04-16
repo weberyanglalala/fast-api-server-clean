@@ -18,20 +18,27 @@ I'm open to hearing your feedback about the template and what you'd like to see 
 
 --
 
-# Install all dependencies.
+## Create a virtual environment
+
+- Run `python -m venv .venv` to create a virtual environment.
+- Run `source .venv/bin/activate` to activate the virtual environment on Mac/Linux.
+
+## Install all dependencies
+
 - Run `pip install -r requirements-dev.txt`
 
-# How to run app. Using Docker with PostgreSQL.
+## How to run app. Using Docker with PostgreSQL
+
 - Install Docker Desktop
 - Run `docker compose up --build`
 - Run `docker compose down` to stop all services
 
-# How to run locally without postgres or docker.
-- in database/core.py change the DATABASE_URL to sqlite
+## How to run locally
+
 - run `uvicorn src.main:app --reload`
 
-# How to run tests.
-- Run `pytest` to run all tests
+## How to run tests
 
+- Run `pytest` to run all tests
 
 Cheers!
