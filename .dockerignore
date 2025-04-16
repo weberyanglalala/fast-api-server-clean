@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Database files
+test.db
+pg-data/
+
+# OS files
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Tests
+tests/
+
+# Misc
+*.log

@@ -10,3 +10,6 @@ passlib
 bcrypt==4.0.1
 python-multipart
 email-validator
+pypandoc==1.6.3
+pypandoc-binary==1.15
+boto3==1.37.34
