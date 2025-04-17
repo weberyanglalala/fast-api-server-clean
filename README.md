@@ -1,44 +1,65 @@
 # Clean Architecture Template
 
-What's included in the template?
+## Development
 
-- Domain layer with sample entities.
-- Application layer with abstractions for:
-  - Example use cases
-  - Cross-cutting concerns (logging, validation)
-- Infrastructure layer with:
-  - Authentication
-  - SQLAlchemy, PostgreSQL (you can change to SQLite for development in database/core.py)
-  - Rate limiting on registration
-- Testing projects
-  - Pytest unit tests
-  - Pytest integration tests (e2e tests)
+### Create a virtual environment
 
-I'm open to hearing your feedback about the template and what you'd like to see in future iterations. DM me on LinkedIn or email me.
+```
+poetry install --no-root
+```
 
---
+### Activate the virtual environment
 
-## Create a virtual environment
+```
+poetry shell
+```
 
-- Run `python -m venv .venv` to create a virtual environment.
-- Run `source .venv/bin/activate` to activate the virtual environment on Mac/Linux.
+### Install all dependencies
 
-## Install all dependencies
+- run `poetry install` to install all dependencies
 
-- Run `pip install -r requirements-dev.txt`
-
-## How to run app. Using Docker with PostgreSQL
+### Using Docker with PostgreSQL
 
 - Install Docker Desktop
-- Run `docker compose up --build`
+- Run `docker compose up db` to start the PostgreSQL database
 - Run `docker compose down` to stop all services
 
-## How to run locally
+### modify the .env file
 
-- run `uvicorn src.main:app --reload`
+- Copy the `.env.example` file to `.env` and modify the values as needed
 
-## How to run tests
+### How to run locally
 
-- Run `pytest` to run all tests
+```
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-Cheers!
+### How to run tests
+
+```
+poetry run pytest
+```
+
+## how to add migration by alembic
+
+### Create a migration
+
+```
+alembic revision --autogenerate -m "migration_name"
+```
+
+### modify the database url in alembic.ini
+
+- Change the `sqlalchemy.url` to your database URL
+- For example, if you are using PostgreSQL, it should look like this:
+
+```
+sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
+```
+
+
+### Apply the migration
+
+```
+alembic upgrade head
+```
