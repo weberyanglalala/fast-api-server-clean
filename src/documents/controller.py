@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from .models import DocumentInput
 from .service import convert_and_upload
+from ..auth.service import CurrentUser
 
 router = APIRouter(
     prefix="/documents",

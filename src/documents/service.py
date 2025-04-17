@@ -7,6 +7,8 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException
 from dotenv import load_dotenv
 from .models import DocumentInput
+from src.utils.file_upload import upload_file_to_r2
+from src.utils.document_convert import convert_document  # new import
 
 load_dotenv()
 
@@ -25,48 +27,18 @@ s3_client = boto3.client(
 
 def convert_and_upload(doc: DocumentInput):
     try:
-        binary_formats = ["docx", "pdf", "epub"]
-        output_is_binary = doc.output_format in binary_formats
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_extension = doc.output_format if doc.output_format != "html" else "html"
         file_name = f"converted_{timestamp}.{file_extension}"
-        if output_is_binary:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_extension}") as temp_file:
-                output_path = temp_file.name
-                pypandoc.convert_text(
-                    doc.content,
-                    to=doc.output_format,
-                    format=doc.input_format,
-                    outputfile=output_path
-                )
-                with open(output_path, 'rb') as f:
-                    file_content = f.read()
-                os.unlink(output_path)
-            converted_content = None
-        else:
-            file_content = pypandoc.convert_text(
-                doc.content,
-                to=doc.output_format,
-                format=doc.input_format
-            ).encode('utf-8')
-            converted_content = file_content.decode('utf-8', errors='ignore')
-        content_type_map = {
-            "html": "text/html",
-            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "pdf": "application/pdf",
-            "epub": "application/epub+zip",
-            "txt": "text/plain"
-        }
-        content_type = content_type_map.get(doc.output_format, "application/octet-stream")
+
+        file_content, converted_content, content_type = convert_document(doc)
+
         try:
-            s3_client.put_object(
-                Bucket=R2_BUCKET_NAME,
-                Key=file_name,
-                Body=file_content,
-                ContentType=content_type,
-                ACL='public-read'
+            file_url = upload_file_to_r2(
+                file_name=file_name,
+                file_content=file_content,
+                content_type=content_type
             )
-            file_url = f"{R2_PUBLIC_URL}/{file_name}"
             response = {
                 "uploaded_file_url": file_url,
                 "file_name": file_name
