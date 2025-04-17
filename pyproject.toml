@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "fastapi-clean-architecture"
+version = "0.1.0"
+description = ""
+authors = ["Weber Yang <weberyanglalala@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "*"
+uvicorn = "*"
+sqlalchemy = "*"
+alembic = "*"
+psycopg2-binary = "*"
+slowapi = "*"
+python-dotenv = "*"
+pyjwt = "*"
+passlib = "*"
+bcrypt = "4.0.1"
+python-multipart = "*"
+email-validator = "*"
+pypandoc = "1.6.3"
+pypandoc-binary = "1.15"
+boto3 = "1.37.34"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+httpx = "*"
+black = "*"
+ruff = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
