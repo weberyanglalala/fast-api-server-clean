@@ -3,6 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 from fastapi import HTTPException
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ def upload_file_to_r2(file_name: str, file_content: bytes, content_type: str) ->
             ACL='public-read'
         )
         file_url = f"{R2_PUBLIC_URL}/{file_name}"
+        logging.info(f"File uploaded to R2: {file_url}")
         return file_url
     except ClientError as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload to R2: {str(e)}")

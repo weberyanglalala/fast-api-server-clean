@@ -1,8 +1,8 @@
-import tempfile
 import os
+import tempfile
+import logging
 import pypandoc
-from fastapi import HTTPException
-from .file_upload import upload_file_to_r2  # not used here, just for context
+
 
 def convert_document(doc):
     binary_formats = ["docx", "pdf", "epub"]
@@ -36,4 +36,5 @@ def convert_document(doc):
         "txt": "text/plain"
     }
     content_type = content_type_map.get(doc.output_format, "application/octet-stream")
+    logging.info(f"Converting {doc.output_format} to {content_type}")
     return file_content, converted_content, content_type

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database.core import engine, Base
 from .api import register_routes
-from .logging import configure_logging, LogLevels
+from .log_config import configure_logging, LogLevels
 
 configure_logging(LogLevels.info)
 
