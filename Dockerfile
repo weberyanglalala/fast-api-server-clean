@@ -10,13 +10,14 @@ RUN pip install --no-cache-dir poetry
 ENV POETRY_VIRTUALENVS_CREATE=false
 
 # Copy pyproject.toml and poetry.lock first for better cache
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock* alembic.ini ./
 
 # Install dependencies using Poetry
 RUN poetry install --no-root --no-interaction --no-ansi
 
 # Copy the project files
 COPY src/ src/
+COPY alembic/ alembic/
 
 # Expose the port FastAPI runs on
 EXPOSE 8000

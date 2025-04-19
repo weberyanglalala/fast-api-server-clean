@@ -60,6 +60,18 @@ sqlalchemy.url = postgresql://username:password@localhost:5432/db_name
 
 ### Apply the migration
 
+#### run all services
+
+```
+docker compose up
+```
+
+#### exec the api container
+
+```
+docker compose exec api bash
+```
+
 ```
 alembic upgrade head
 ```
