@@ -22,6 +22,7 @@ email-validator = "*"
 pypandoc = "1.6.3"
 pypandoc-binary = "1.15"
 boto3 = "1.37.34"
+pdflatex = "^0.1.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
