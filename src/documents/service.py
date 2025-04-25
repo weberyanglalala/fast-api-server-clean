@@ -8,6 +8,8 @@ from src.utils.document_convert import convert_document
 from src.utils.file_upload import upload_file_to_r2
 from .models import DocumentInput
 
+logger = logging.getLogger(__name__)
+
 
 def convert_and_upload(doc: DocumentInput):
     try:
@@ -29,11 +31,14 @@ def convert_and_upload(doc: DocumentInput):
             }
             if converted_content is not None:
                 response["converted_content"] = converted_content
-                logging.info(f"Converted content: {converted_content[:100]}...")
+                logger.info(f"Converted content: {converted_content[:100]}...")
             return response
         except ClientError as e:
+            logger.error(f"Failed to upload file to R2: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to upload to R2: {str(e)}")
     except RuntimeError as e:
+        logger.error(f"Document conversion failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
     except Exception as e:
+        logger.error(f"Unexpected error during conversion: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
