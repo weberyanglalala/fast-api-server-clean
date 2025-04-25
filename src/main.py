@@ -1,10 +1,13 @@
 from fastapi import FastAPI
-from .database.core import engine, Base
+
 from .api import register_routes
 from .log_config import configure_logging, LogLevels
+from .middleware.exception_handlers import register_exception_handlers
 
 configure_logging(LogLevels.info)
 
 app = FastAPI()
-# Base.metadata.create_all(bind=engine)
+
+# Register exception handlers middleware
+register_exception_handlers(app)
 register_routes(app)

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from src.entities.user import User
 from . import models
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from ..exceptions import AuthenticationError
+from ..exceptions import AuthenticationError, AuthenticationUserExistsError
 import logging
 
 # You would want to store this in an environment variable or a secret manager
@@ -57,6 +57,10 @@ def verify_token(token: str) -> models.TokenData:
 
 
 def register_user(db: Session, register_user_request: models.RegisterUserRequest) -> None:
+    existing_user = db.query(User).filter(User.email == register_user_request.email).first()
+    if existing_user:
+        logging.warning(f"User already exists with email: {register_user_request.email}")
+        raise AuthenticationUserExistsError()
     try:
         create_user_model = User(
             id=uuid4(),
