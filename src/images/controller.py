@@ -23,7 +23,7 @@ async def upload_images(request: ImageUploadRequest):
                 img_str = re.sub(r"^data:[^,]+,", "", img_str)
             img_bytes = base64.b64decode(img_str)
             file_name = f"image_{uuid.uuid4().hex}.png"
-            url = upload_file_to_r2(file_name=file_name, file_content=img_bytes, content_type="image/png")
+            url = await upload_file_to_r2(file_name=file_name, file_content=img_bytes, content_type="image/png")
             urls.append(url)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
@@ -44,7 +44,7 @@ async def generate_images(request: ImageGenerateRequest):
         )
         
         # Generate the images
-        generation_response = generate_image(generation_request)
+        generation_response = await generate_image(generation_request)
         
         # Store images if needed
         urls = []

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, List
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
 
@@ -52,7 +52,7 @@ class ImageGenerationResponse(BaseModel):
     urls: Optional[List[str]] = None  # URLs if provided by the API
 
 
-def generate_image(request: ImageGenerationRequest) -> ImageGenerationResponse:
+async def generate_image(request: ImageGenerationRequest) -> ImageGenerationResponse:
     """
     Generate images using OpenAI's image generation models.
     
@@ -62,7 +62,7 @@ def generate_image(request: ImageGenerationRequest) -> ImageGenerationResponse:
     Returns:
         ImageGenerationResponse containing generated images
     """
-    client = OpenAI()
+    client = AsyncOpenAI()
 
     # Get appropriate size for the selected model
     size = request.get_appropriate_size()
@@ -78,7 +78,7 @@ def generate_image(request: ImageGenerationRequest) -> ImageGenerationResponse:
     response_format = "b64_json"  # Default format for all models
 
     # Generate images
-    response = client.images.generate(
+    response = await client.images.generate(
         model=request.model,
         prompt=request.prompt,
         n=request.count,

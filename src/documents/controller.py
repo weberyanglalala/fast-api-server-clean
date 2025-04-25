@@ -10,4 +10,4 @@ router = APIRouter(
 
 @router.post("/convert")
 async def convert_document(doc: DocumentInput):
-    return convert_and_upload(doc)
+    return await convert_and_upload(doc)
