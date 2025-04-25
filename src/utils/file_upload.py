@@ -5,6 +5,8 @@ from fastapi import HTTPException
 from dotenv import load_dotenv
 import logging
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
@@ -30,7 +32,8 @@ def upload_file_to_r2(file_name: str, file_content: bytes, content_type: str) ->
             ACL='public-read'
         )
         file_url = f"{R2_PUBLIC_URL}/{file_name}"
-        logging.info(f"File uploaded to R2: {file_url}")
+        logger.info(f"File uploaded to R2: {file_url}")
         return file_url
     except ClientError as e:
+        logger.error(f"Failed to upload file to R2: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to upload to R2: {str(e)}")

@@ -3,6 +3,7 @@ import tempfile
 import logging
 import pypandoc
 
+logger = logging.getLogger(__name__)
 
 def convert_document(doc):
     binary_formats = ["docx", "pdf", "epub"]
@@ -36,5 +37,5 @@ def convert_document(doc):
         "txt": "text/plain"
     }
     content_type = content_type_map.get(doc.output_format, "application/octet-stream")
-    logging.info(f"Converting {doc.output_format} to {content_type}")
+    logger.info(f"Converting {doc.output_format} to {content_type}")
     return file_content, converted_content, content_type
