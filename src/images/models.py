@@ -18,3 +18,13 @@ class ImageGenerateRequest(BaseModel):
 class ImageGenerateResponse(BaseModel):
     images: Optional[List[str]] = None  # Base64-encoded images (if not stored)
     urls: Optional[List[str]] = None  # URLs to stored images or from OpenAI
+
+class ImageEditRequest(BaseModel):
+    image_urls: List[str]  # List of URLs to images that will be edited
+    prompt: str
+    model: ImageModel = ImageModel.GPT_IMAGE
+    store_image: bool = True  # Whether to store the image and return URL
+
+class ImageEditResponse(BaseModel):
+    image: Optional[str] = None  # Base64-encoded image (if not stored)
+    url: Optional[str] = None  # URL to stored image

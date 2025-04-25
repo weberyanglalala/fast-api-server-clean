@@ -1,6 +1,9 @@
+import io
+import urllib.parse
 from enum import Enum
 from typing import Optional, List
 
+import aiohttp
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
@@ -98,3 +101,45 @@ async def generate_image(request: ImageGenerationRequest) -> ImageGenerationResp
         urls = [img_data.url for img_data in response.data if hasattr(img_data, 'url')]
 
     return ImageGenerationResponse(images=images, urls=urls)
+
+
+class ImageEditResponse(BaseModel):
+    """Response model with the edited image."""
+    image: Optional[str] = None  # Base64-encoded image data
+    url: Optional[str] = None  # URL if provided by the API
+
+
+async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            data = await resp.read()
+
+    # 使用 urlsplit 獲取 https://pub-fae13a4a449b449a9d2618873c3032a5.r2.dev/ai_edited_06ff09fbca69419c91430d93de1ff650.png
+    path = urllib.parse.urlsplit(url).path
+    # 取得 urlsplit ai_edited_06ff09fbca69419c91430d93de1ff650.png
+    filename = path.split("/")[-1]
+    bio = io.BytesIO(data)
+    bio.name = filename
+    return bio
+
+
+async def edit_images_openai(image_files, prompt) -> ImageEditResponse:
+    # download and wrap each image as a file-like object with .name
+    client = AsyncOpenAI()
+    resp = await client.images.edit(
+        model="gpt-image-1",
+        image=image_files,
+        prompt=prompt,
+    )
+
+    # pull out the b64 or url
+    img: Optional[str] = None
+    url: Optional[str] = None
+    if resp.data and hasattr(resp.data[0], "b64_json"):
+        img = resp.data[0].b64_json
+    if resp.data and hasattr(resp.data[0], "url"):
+        url = resp.data[0].url
+
+    # optionally upload to R2 … then return
+    return ImageEditResponse(image=img, url=url)

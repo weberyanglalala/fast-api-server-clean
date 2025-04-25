@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID
 
 from ..database.core import DbSession
-from . import  models
+from . import models
 from . import service
 from ..auth.service import CurrentUser
 
@@ -11,6 +11,7 @@ router = APIRouter(
     prefix="/todos",
     tags=["Todos"]
 )
+
 
 @router.post("/", response_model=models.TodoResponse, status_code=status.HTTP_201_CREATED)
 def create_todo(db: DbSession, todo: models.TodoCreate, current_user: CurrentUser):
