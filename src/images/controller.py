@@ -57,7 +57,7 @@ async def generate_images(request: ImageGenerateRequest):
                 try:
                     img_bytes = base64.b64decode(img_str)
                     file_name = f"ai_generated_{uuid.uuid4().hex}.png"
-                    url = upload_file_to_r2(file_name=file_name, file_content=img_bytes, content_type="image/png")
+                    url = await upload_file_to_r2(file_name=file_name, file_content=img_bytes, content_type="image/png")
                     urls.append(url)
                 except Exception as e:
                     raise HTTPException(status_code=400, detail=f"Failed to store generated image: {str(e)}")
