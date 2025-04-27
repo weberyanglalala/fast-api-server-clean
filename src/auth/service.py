@@ -1,9 +1,11 @@
+import os
 from datetime import timedelta, datetime, timezone
 from typing import Annotated
 from uuid import UUID, uuid4
 from fastapi import Depends
 from passlib.context import CryptContext
 import jwt
+from dotenv import load_dotenv
 from jwt import PyJWTError
 from sqlalchemy.orm import Session
 from src.entities.user import User
@@ -12,10 +14,11 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from ..exceptions import AuthenticationError, AuthenticationUserExistsError
 import logging
 
+load_dotenv()
 # You would want to store this in an environment variable or a secret manager
-SECRET_KEY = '197b2c37c391bed93fe80344fe73b806947a65e36206e05a1a23c2fa12702fe3'
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_DAYS = float(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", "30"))
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -68,24 +71,25 @@ def register_user(db: Session, register_user_request: models.RegisterUserRequest
             first_name=register_user_request.first_name,
             last_name=register_user_request.last_name,
             password_hash=get_password_hash(register_user_request.password)
-        )    
+        )
         db.add(create_user_model)
         db.commit()
     except Exception as e:
         logging.error(f"Failed to register user: {register_user_request.email}. Error: {str(e)}")
         raise
-    
-    
+
+
 def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]) -> models.TokenData:
     return verify_token(token)
+
 
 CurrentUser = Annotated[models.TokenData, Depends(get_current_user)]
 
 
 def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-                                 db: Session) -> models.Token:
+                           db: Session) -> models.Token:
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise AuthenticationError()
-    token = create_access_token(user.email, user.id, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    token = create_access_token(user.email, user.id, timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
     return models.Token(access_token=token, token_type='bearer')
