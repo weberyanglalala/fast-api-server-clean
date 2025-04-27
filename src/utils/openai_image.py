@@ -12,6 +12,7 @@ from fastapi import Depends
 
 logger = logging.getLogger(__name__)
 
+
 # Create a factory function that returns an AsyncOpenAI client
 @lru_cache()
 def get_openai_client() -> AsyncOpenAI:
@@ -20,6 +21,7 @@ def get_openai_client() -> AsyncOpenAI:
     Uses lru_cache to ensure only one instance is created.
     """
     return AsyncOpenAI()
+
 
 # Define a dependency that can be used in FastAPI routes
 AsyncOpenAIClient = Callable[[], AsyncOpenAI]
@@ -74,8 +76,8 @@ class ImageGenerationResponse(BaseModel):
 
 
 async def generate_image(
-    request: ImageGenerationRequest, 
-    client: AsyncOpenAI = get_async_openai_client
+        request: ImageGenerationRequest,
+        client: AsyncOpenAI = get_async_openai_client
 ) -> ImageGenerationResponse:
     """
     Generate images using OpenAI's image generation models.
@@ -146,9 +148,9 @@ async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
 
 
 async def edit_images_openai(
-    image_files, 
-    prompt, 
-    client: AsyncOpenAI = get_async_openai_client
+        image_files,
+        prompt,
+        client: AsyncOpenAI = get_async_openai_client
 ) -> ImageEditResponse:
     """
     Edit images using OpenAI's image editing capability.
@@ -180,8 +182,8 @@ async def edit_images_openai(
 
 
 async def recognize_image(
-    image_url: str, 
-    client: AsyncOpenAI = get_async_openai_client
+        image_url: str,
+        client: AsyncOpenAI = get_async_openai_client
 ) -> str:
     """
     Recognize and describe an image using OpenAI's vision capabilities.
