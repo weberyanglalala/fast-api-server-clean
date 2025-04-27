@@ -1,4 +1,5 @@
 import io
+import logging
 import urllib.parse
 from enum import Enum
 from typing import Optional, List
@@ -6,6 +7,8 @@ from typing import Optional, List
 import aiohttp
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 class ImageModel(str, Enum):
@@ -143,3 +146,28 @@ async def edit_images_openai(image_files, prompt) -> ImageEditResponse:
 
     # optionally upload to R2 … then return
     return ImageEditResponse(image=img, url=url)
+
+
+async def recognize_image(image_url: str) -> str:
+    client = AsyncOpenAI()
+    response = await client.chat.completions.create(
+        model="gpt-4.1-nano",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text",
+                     "text": "You are an advanced image analysis AI capable of providing detailed descriptions in Traditional Chinese. Your task is to analyze the following image and provide a comprehensive description of its contents."},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": image_url
+                        }
+                    },
+                ],
+            }
+        ],
+        max_tokens=150,
+    )
+
+    return response.choices[0].message.content

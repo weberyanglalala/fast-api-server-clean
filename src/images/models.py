@@ -28,3 +28,13 @@ class ImageEditRequest(BaseModel):
 class ImageEditResponse(BaseModel):
     image: Optional[str] = None  # Base64-encoded image (if not stored)
     url: Optional[str] = None  # URL to stored image
+
+class ImagesRecognizeRequest(BaseModel):
+    urls: List[str]  # List of public URLs
+
+class ImageRecognizeObject(BaseModel):
+    url: str
+    description: str
+
+class ImagesRecognizeResponse(BaseModel):
+    images: List[ImageRecognizeObject]

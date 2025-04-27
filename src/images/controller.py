@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 
 from src.utils.file_upload import upload_file_to_r2
 from src.utils.openai_image import generate_image, ImageGenerationRequest, \
-    download_image_as_file, edit_images_openai
+    download_image_as_file, edit_images_openai, recognize_image
 from .models import *
 
 router = APIRouter(
@@ -14,6 +14,16 @@ router = APIRouter(
     tags=["Images"]
 )
 
+@router.post("/recognize", response_model=ImagesRecognizeResponse)
+async def upload_images(request: ImagesRecognizeRequest):
+    images: List[ImageRecognizeObject]  = []
+    for img_url in request.urls:
+        try:
+            description = await recognize_image(img_url)
+            images.append(ImageRecognizeObject(url=img_url, description=description))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
+    return ImagesRecognizeResponse(images=images)
 
 @router.post("/upload", response_model=ImageUploadResponse)
 async def upload_images(request: ImageUploadRequest):
