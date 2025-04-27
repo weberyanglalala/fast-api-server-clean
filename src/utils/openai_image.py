@@ -2,13 +2,28 @@ import io
 import logging
 import urllib.parse
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 import aiohttp
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
+from functools import lru_cache
+from fastapi import Depends
 
 logger = logging.getLogger(__name__)
+
+# Create a factory function that returns an AsyncOpenAI client
+@lru_cache()
+def get_openai_client() -> AsyncOpenAI:
+    """
+    Create and return an instance of AsyncOpenAI client.
+    Uses lru_cache to ensure only one instance is created.
+    """
+    return AsyncOpenAI()
+
+# Define a dependency that can be used in FastAPI routes
+AsyncOpenAIClient = Callable[[], AsyncOpenAI]
+get_async_openai_client = Depends(get_openai_client)
 
 
 class ImageModel(str, Enum):
@@ -58,17 +73,20 @@ class ImageGenerationResponse(BaseModel):
     urls: Optional[List[str]] = None  # URLs if provided by the API
 
 
-async def generate_image(request: ImageGenerationRequest) -> ImageGenerationResponse:
+async def generate_image(
+    request: ImageGenerationRequest, 
+    client: AsyncOpenAI = get_async_openai_client
+) -> ImageGenerationResponse:
     """
     Generate images using OpenAI's image generation models.
     
     Args:
         request: ImageGenerationRequest with model parameters
+        client: AsyncOpenAI client (injected via dependency)
         
     Returns:
         ImageGenerationResponse containing generated images
     """
-    client = AsyncOpenAI()
 
     # Get appropriate size for the selected model
     size = request.get_appropriate_size()
@@ -127,9 +145,22 @@ async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
     return bio
 
 
-async def edit_images_openai(image_files, prompt) -> ImageEditResponse:
-    # download and wrap each image as a file-like object with .name
-    client = AsyncOpenAI()
+async def edit_images_openai(
+    image_files, 
+    prompt, 
+    client: AsyncOpenAI = get_async_openai_client
+) -> ImageEditResponse:
+    """
+    Edit images using OpenAI's image editing capability.
+    
+    Args:
+        image_files: List of image files to edit
+        prompt: Text prompt describing the edit
+        client: AsyncOpenAI client (injected via dependency)
+        
+    Returns:
+        ImageEditResponse with edited image data
+    """
     resp = await client.images.edit(
         model="gpt-image-1",
         image=image_files,
@@ -148,8 +179,20 @@ async def edit_images_openai(image_files, prompt) -> ImageEditResponse:
     return ImageEditResponse(image=img, url=url)
 
 
-async def recognize_image(image_url: str) -> str:
-    client = AsyncOpenAI()
+async def recognize_image(
+    image_url: str, 
+    client: AsyncOpenAI = get_async_openai_client
+) -> str:
+    """
+    Recognize and describe an image using OpenAI's vision capabilities.
+    
+    Args:
+        image_url: URL of the image to analyze
+        client: AsyncOpenAI client (injected via dependency)
+        
+    Returns:
+        String description of the image content in Traditional Chinese
+    """
     response = await client.chat.completions.create(
         model="gpt-4.1-nano",
         messages=[
@@ -167,7 +210,7 @@ async def recognize_image(image_url: str) -> str:
                 ],
             }
         ],
-        max_tokens=150,
+        max_tokens=500,
     )
 
     return response.choices[0].message.content

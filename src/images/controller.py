@@ -2,11 +2,12 @@ import base64
 import re
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from openai import AsyncOpenAI
 
 from src.utils.file_upload import upload_file_to_r2
 from src.utils.openai_image import generate_image, ImageGenerationRequest, \
-    download_image_as_file, edit_images_openai, recognize_image
+    download_image_as_file, edit_images_openai, recognize_image, get_async_openai_client
 from .models import *
 
 router = APIRouter(
@@ -15,11 +16,11 @@ router = APIRouter(
 )
 
 @router.post("/recognize", response_model=ImagesRecognizeResponse)
-async def upload_images(request: ImagesRecognizeRequest):
+async def upload_images(request: ImagesRecognizeRequest, client: AsyncOpenAI = get_async_openai_client):
     images: List[ImageRecognizeObject]  = []
     for img_url in request.urls:
         try:
-            description = await recognize_image(img_url)
+            description = await recognize_image(img_url, client)
             images.append(ImageRecognizeObject(url=img_url, description=description))
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to process image: {str(e)}")
@@ -44,7 +45,7 @@ async def upload_images(request: ImageUploadRequest):
 
 
 @router.post("/generate", response_model=ImageGenerateResponse)
-async def generate_images(request: ImageGenerateRequest):
+async def generate_images(request: ImageGenerateRequest, client: AsyncOpenAI = get_async_openai_client):
     """
     Generate images using OpenAI's image generation models.
     """
@@ -58,7 +59,7 @@ async def generate_images(request: ImageGenerateRequest):
         )
 
         # Generate the images
-        generation_response = await generate_image(generation_request)
+        generation_response = await generate_image(generation_request, client)
 
         # Store images if needed
         urls = []
@@ -82,7 +83,7 @@ async def generate_images(request: ImageGenerateRequest):
 
 
 @router.post("/edit", response_model=ImageEditResponse)
-async def edit_images(request: ImageEditRequest):
+async def edit_images(request: ImageEditRequest, client: AsyncOpenAI = get_async_openai_client):
     """
     Edit multiple images using OpenAI's image editing capability and the provided prompt.
     The images are downloaded from the provided URLs, wrapped as file-likes with names
@@ -105,7 +106,8 @@ async def edit_images(request: ImageEditRequest):
         # Process the edit request
         edit_response = await edit_images_openai(
             image_files=image_files,
-            prompt=request.prompt)
+            prompt=request.prompt,
+            client=client)
 
         # If requested, store the edited image in R2
         final_url = None
