@@ -6,7 +6,7 @@ import pypandoc
 logger = logging.getLogger(__name__)
 
 def convert_document(doc):
-    binary_formats = ["docx", "pdf", "epub"]
+    binary_formats = ["docx", "pdf", "epub", "pptx"]
     output_is_binary = doc.output_format in binary_formats
     file_extension = doc.output_format if doc.output_format != "html" else "html"
     if output_is_binary:
@@ -34,6 +34,7 @@ def convert_document(doc):
         "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "pdf": "application/pdf",
         "epub": "application/epub+zip",
+        "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "txt": "text/plain"
     }
     content_type = content_type_map.get(doc.output_format, "application/octet-stream")
