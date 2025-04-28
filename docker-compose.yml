@@ -12,6 +12,9 @@ services:
       - R2_ENDPOINT_URL=${R2_ENDPOINT_URL}
       - R2_BUCKET_NAME=${R2_BUCKET_NAME}
       - R2_PUBLIC_URL=${R2_PUBLIC_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_DAYS=${ACCESS_TOKEN_EXPIRE_DAYS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
     volumes:
