@@ -137,7 +137,7 @@ class ImageEditResponse(BaseModel):
 class EditImageRequest(BaseModel):
     """Request model for image editing."""
     image_files: List[io.BytesIO]  # List of image files to edit
-    prompt: str  # Text prompt describing the edit 
+    prompt: str  # Text prompt describing the edit
     quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] = "medium"  # Quality of the generated image
     size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] = "1024x1024"
 
