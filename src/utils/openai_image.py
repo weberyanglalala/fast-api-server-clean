@@ -134,6 +134,18 @@ class ImageEditResponse(BaseModel):
     url: Optional[str] = None  # URL if provided by the API
 
 
+class EditImageRequest(BaseModel):
+    """Request model for image editing."""
+    image_files: List[io.BytesIO]  # List of image files to edit
+    prompt: str  # Text prompt describing the edit 
+    quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] = "medium"  # Quality of the generated image
+    size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] = "1024x1024"
+
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
+
+
 async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
@@ -150,18 +162,14 @@ async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
 
 
 async def edit_images_openai(
-        image_files,
-        prompt,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] = "medium",
+        request: EditImageRequest,
         client: AsyncOpenAI = get_async_openai_client
 ) -> ImageEditResponse:
     """
     Edit images using OpenAI's image editing capability.
 
     Args:
-        image_files: List of image files to edit
-        prompt: Text prompt describing the edit
-        quality: Quality of the generated image. Options are "standard", "low", "medium", "high", "auto". Default is "medium".
+        request: EditImageRequest with model parameters
         client: AsyncOpenAI client (injected via dependency)
 
     Returns:
@@ -169,9 +177,10 @@ async def edit_images_openai(
     """
     resp = await client.images.edit(
         model="gpt-image-1",
-        image=image_files,
-        prompt=prompt,
-        quality=quality,
+        image=request.image_files,
+        prompt=request.prompt,
+        quality=request.quality,
+        size=request.size,
     )
 
     # pull out the b64 or url
