@@ -55,7 +55,8 @@ async def generate_images(request: ImageGenerateRequest, client: AsyncOpenAI = g
             prompt=request.prompt,
             model=request.model,
             count=request.count,
-            size=request.size
+            size=request.size,
+            quality=request.quality,
         )
 
         # Generate the images

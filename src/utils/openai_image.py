@@ -2,7 +2,7 @@ import io
 import logging
 import urllib.parse
 from enum import Enum
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Literal
 
 import aiohttp
 from openai import AsyncOpenAI
@@ -56,13 +56,14 @@ class ImageGenerationRequest(BaseModel):
     prompt: str
     model: ImageModel = ImageModel.GPT_IMAGE
     count: int = Field(default=1, ge=1, le=10)
-    size: Optional[str] = None
+    size: Optional[str] = "1024x1024"
+    quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] = "medium"
 
     def get_appropriate_size(self) -> str:
         """Determine the appropriate size based on the selected model."""
         if not self.size:
             if self.model == ImageModel.GPT_IMAGE:
-                return ImageSize.GPT_IMAGE_AUTO
+                return ImageSize.SIZE_1024
             elif self.model == ImageModel.DALL_E_2:
                 return ImageSize.SIZE_1024
             else:  # DALL-E-3
@@ -81,17 +82,17 @@ async def generate_image(
 ) -> ImageGenerationResponse:
     """
     Generate images using OpenAI's image generation models.
-    
+
     Args:
         request: ImageGenerationRequest with model parameters
         client: AsyncOpenAI client (injected via dependency)
-        
+
     Returns:
         ImageGenerationResponse containing generated images
     """
 
     # Get appropriate size for the selected model
-    size = request.get_appropriate_size()
+    size = request.size
 
     # response_format
     # https://platform.openai.com/docs/api-reference/images/create#images-create-response_format
@@ -109,6 +110,7 @@ async def generate_image(
         prompt=request.prompt,
         n=request.count,
         size=size,
+        quality=request.quality,
         **({"response_format": response_format} if request.model != ImageModel.GPT_IMAGE else {})
     )
 
@@ -150,16 +152,18 @@ async def download_image_as_file(url: str, filename: str) -> io.BytesIO:
 async def edit_images_openai(
         image_files,
         prompt,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] = "medium",
         client: AsyncOpenAI = get_async_openai_client
 ) -> ImageEditResponse:
     """
     Edit images using OpenAI's image editing capability.
-    
+
     Args:
         image_files: List of image files to edit
         prompt: Text prompt describing the edit
+        quality: Quality of the generated image. Options are "standard", "low", "medium", "high", "auto". Default is "medium".
         client: AsyncOpenAI client (injected via dependency)
-        
+
     Returns:
         ImageEditResponse with edited image data
     """
@@ -167,6 +171,7 @@ async def edit_images_openai(
         model="gpt-image-1",
         image=image_files,
         prompt=prompt,
+        quality=quality,
     )
 
     # pull out the b64 or url
@@ -187,11 +192,11 @@ async def recognize_image(
 ) -> str:
     """
     Recognize and describe an image using OpenAI's vision capabilities.
-    
+
     Args:
         image_url: URL of the image to analyze
         client: AsyncOpenAI client (injected via dependency)
-        
+
     Returns:
         String description of the image content in Traditional Chinese
     """

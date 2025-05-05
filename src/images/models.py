@@ -12,8 +12,9 @@ class ImageGenerateRequest(BaseModel):
     prompt: str
     model: ImageModel = ImageModel.GPT_IMAGE
     count: int = Field(default=1, ge=1, le=3)
-    size: Optional[str] = None
+    size: Optional[str] = "1024x1024"
     store_images: bool = True  # Whether to store the images and return URLs
+    quality: Optional[str] = "medium"
 
 class ImageGenerateResponse(BaseModel):
     images: Optional[List[str]] = None  # Base64-encoded images (if not stored)
