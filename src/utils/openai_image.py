@@ -2,13 +2,14 @@ import io
 import logging
 import urllib.parse
 from enum import Enum
-from typing import Optional, List, Callable, Literal
+from typing import Optional, List, Callable, Literal, Tuple
 
 import aiohttp
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 from functools import lru_cache
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -230,3 +231,40 @@ async def recognize_image(
     )
 
     return response.choices[0].message.content
+
+
+async def get_image_dimensions(url: str) -> tuple[Optional[int], Optional[int]]:
+    """
+    Fetch image from URL and return its dimensions (width, height).
+    Uses a shared aiohttp session for better resource management.
+    """
+    try:
+        # Use a new client session
+        async with aiohttp.ClientSession() as client_session:
+            async with client_session.get(url, timeout=10) as response:
+                if response.status != 200:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Failed to fetch image. Status code: {response.status}"
+                    )
+                # Read image data into memory
+                image_data = await response.read()
+
+        # Process image data with PIL to get dimensions
+        image = Image.open(io.BytesIO(image_data))
+        width, height = image.size
+        image.close()  # Explicitly close the image to release resources
+        return width, height
+
+    except aiohttp.ClientError as e:
+        logger.error(f"Network error while fetching image: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Network error while fetching image."
+        )
+    except Exception as e:
+        logger.error(f"Error processing image: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Could not process image data."
+        )

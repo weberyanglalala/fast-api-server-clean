@@ -1,15 +1,18 @@
 import base64
 import re
 import uuid
+import logging
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from openai import AsyncOpenAI
 
 from src.utils.file_upload import upload_file_to_r2
 from src.utils.openai_image import (generate_image, ImageGenerationRequest, EditImageRequest,
                                     download_image_as_file, edit_images_openai, recognize_image,
-                                    get_async_openai_client)
+                                    get_async_openai_client, get_image_dimensions)
 from .models import *
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/images",
@@ -146,3 +149,26 @@ async def edit_images(request: ImageEditRequest, client: AsyncOpenAI = get_async
     except Exception as e:
         # catch-all
         raise HTTPException(status_code=500, detail=f"Image editing failed: {e}")
+
+
+@router.get("/image-dimensions", response_model=ImageDimensionsResponse)
+async def image_dimensions(url: str):
+    """
+    FastAPI endpoint to fetch and return the dimensions of an image from a provided URL.
+    Args:
+        url: The URL of the image.
+    Returns:
+        JSON response with width and height of the image.
+    """
+    try:
+        width, height = await get_image_dimensions(url)
+        logger.info(f"Processed image dimensions for URL: {url}")
+        return {"width": width, "height": height}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected error for URL {url}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred."
+        )

@@ -39,3 +39,7 @@ class ImageRecognizeObject(BaseModel):
 
 class ImagesRecognizeResponse(BaseModel):
     images: List[ImageRecognizeObject]
+
+class ImageDimensionsResponse(BaseModel):
+    width: int
+    height: int
