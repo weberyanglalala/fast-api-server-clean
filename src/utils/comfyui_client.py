@@ -16,6 +16,7 @@ COMFYUI_BASE_URL = os.getenv("COMFYUI_BASE_URL", "https://comfyui.buildschool.de
 COMFYUI_USERNAME = os.getenv("COMFYUI_USERNAME")
 COMFYUI_PASSWORD = os.getenv("COMFYUI_PASSWORD")
 
+
 def get_comfyui_client(request: Request) -> aiohttp.ClientSession:
     """
     Get the aiohttp ClientSession from the app state.
@@ -28,15 +29,17 @@ def get_comfyui_client(request: Request) -> aiohttp.ClientSession:
     """
     return request.app.state.comfyui_client
 
+
 # Define a dependency that can be used in FastAPI routes
 ComfyUIClient = Callable[[Request], aiohttp.ClientSession]
 get_async_comfyui_client = Depends(get_comfyui_client)
 
+
 async def comfyui_request(
-    endpoint: str,
-    method: str = "GET",
-    data: Optional[Dict[str, Any]] = None,
-    client: aiohttp.ClientSession = None,
+        endpoint: str,
+        method: str = "GET",
+        data: Optional[Dict[str, Any]] = None,
+        client: aiohttp.ClientSession = None,
 ) -> Dict[str, Any]:
     """
     Make a request to the ComfyUI API.
@@ -86,6 +89,7 @@ async def comfyui_request(
             detail=f"Error in ComfyUI API request: {str(e)}"
         )
 
+
 async def _handle_response(response: aiohttp.ClientResponse) -> None:
     """
     Handle the API response, raising appropriate exceptions for error status codes.
@@ -120,3 +124,12 @@ async def _handle_response(response: aiohttp.ClientResponse) -> None:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"ComfyUI API error: {error_detail}"
             )
+
+
+async def comfyui_request_bytes(
+        endpoint: str,
+        client: aiohttp.ClientSession = None,
+) -> bytes:
+    async with client.get(endpoint) as resp:
+        await _handle_response(resp)
+        return await resp.read()

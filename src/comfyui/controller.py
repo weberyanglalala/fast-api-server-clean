@@ -4,8 +4,10 @@ import aiohttp
 from fastapi import APIRouter, HTTPException, status
 
 from src.utils.comfyui_client import get_async_comfyui_client, comfyui_request
-from .models import ComfyUIExpandImageRequest, ComfyUIExpandImageResponse, PromptRequestDTO
-from .service import replace_comfyui_expand_image_in_prompt, fetch_comfyui_expand_image_workflow_json
+from .models import (ComfyUIExpandImageRequest, ComfyUIExpandImageResponse, PromptRequestDTO, ExpandImageResultResponse,
+                     ExpandImageResultRequest)
+from .service import (replace_comfyui_expand_image_in_prompt, fetch_comfyui_expand_image_workflow_json,
+                      get_comfyui_expand_image_result_file_path, upload_comfyui_server_image_to_r2)
 
 logger = logging.getLogger(__name__)
 
@@ -80,4 +82,36 @@ async def process_comfyui_expand_image(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process ComfyUI expand image: {str(e)}"
+        )
+
+
+@router.post("/expandImageResult", response_model=ExpandImageResultResponse)
+async def process_comfyui_expand_image_result(
+        request: ExpandImageResultRequest,
+        client: aiohttp.ClientSession = get_async_comfyui_client
+):
+    try:
+        # Get prompt history from ComfyUI server
+        prompt_history = await comfyui_request(
+            endpoint=f"/history/{request.prompt_id}",
+            method="GET",
+            client=client
+        )
+
+        # Get image file path from prompt history
+        prompt_id_image_url = get_comfyui_expand_image_result_file_path(prompt_history, request.prompt_id)
+
+        # Upload image from ComfyUI server to R2 storage and get public URL
+        public_url = await upload_comfyui_server_image_to_r2(prompt_id_image_url, client)
+
+        return ExpandImageResultResponse(public_url=public_url, status="success")
+
+    except ValueError as e:
+        logger.error(f"Value error in ComfyUI expand image result processing: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error processing ComfyUI expand image result: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process ComfyUI expand image result: {str(e)}"
         )

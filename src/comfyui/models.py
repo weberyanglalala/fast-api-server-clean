@@ -33,5 +33,23 @@ class PromptRequestDTO(BaseModel):
     prompt: Dict[str, Any] = Field(..., description="ComfyUI 节点结构的 JSON 对象")
     client_id: str = Field(..., description="调用方客户端 ID")
 
+class ExpandImageResultRequest(BaseModel):
+    """
+    Represents a request to expand image results in the ComfyUI system.
+
+    This class is used to structure and validate data associated with
+    requests for expanding image results. It ensures that required fields
+    are provided and follow specified formats or constraints.
+
+    Attributes:
+        prompt_id: A string representing the Prompt ID for the ComfyUI request.
+    """
+    prompt_id: str = Field("error", description="Prompt ID for the ComfyUI request")
+
+class ExpandImageResultResponse(BaseModel):
+    """The result for ComfyUI expand image public url."""
+    status: str = Field("success", description="Status of the operation")
+    public_url: str = Field(..., description="Public URL for the ComfyUI request")
+
     
 
