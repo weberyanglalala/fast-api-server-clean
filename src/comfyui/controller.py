@@ -8,6 +8,7 @@ from .models import (ComfyUIExpandImageRequest, ComfyUIExpandImageResponse, Prom
                      ExpandImageResultRequest)
 from .service import (replace_comfyui_expand_image_in_prompt, fetch_comfyui_expand_image_workflow_json,
                       get_comfyui_expand_image_result_file_path, upload_comfyui_server_image_to_r2)
+from ..auth.service import CurrentUser
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,8 @@ router = APIRouter(
 @router.post("/expandImage", response_model=ComfyUIExpandImageResponse)
 async def process_comfyui_expand_image(
         request: ComfyUIExpandImageRequest,
-        client: aiohttp.ClientSession = get_async_comfyui_client
+        client: aiohttp.ClientSession = get_async_comfyui_client,
+        current_user: CurrentUser = None
 ):
     """
     Process a ComfyUI expand image request by replacing the image URL and updating node properties.
@@ -88,7 +90,8 @@ async def process_comfyui_expand_image(
 @router.post("/expandImageResult", response_model=ExpandImageResultResponse)
 async def process_comfyui_expand_image_result(
         request: ExpandImageResultRequest,
-        client: aiohttp.ClientSession = get_async_comfyui_client
+        client: aiohttp.ClientSession = get_async_comfyui_client,
+        current_user: CurrentUser = None
 ):
     try:
         # Get prompt history from ComfyUI server
